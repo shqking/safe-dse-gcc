@@ -1,0 +1,44 @@
+commit d8e814e87bcd4d41b9676b0d503e73e107bff83e
+Author: shqking <shqking@gmail.com>
+Date:   Wed Mar 18 23:49:16 2020 +0800
+
+    safe dse, aiming to retain memory scrubbing operations. a gcc version for usenix security 17 paper.
+
+diff --git a/gcc/tree-ssa-dse.c b/gcc/tree-ssa-dse.c
+index 90230ab..ab49dce 100644
+--- a/gcc/tree-ssa-dse.c
++++ b/gcc/tree-ssa-dse.c
+@@ -742,7 +742,32 @@ dse_dom_walker::dse_optimize_stmt (gimple_stmt_iterator *gsi)
+ 		}
+ 
+ 	      if (store_status == DSE_STORE_DEAD)
+-		delete_dead_call (gsi);
++          {
++              // safe-dse
++              // Filter out the should-not-be-eliminated dead stores, i.e.,
++              //    memory scrubbing operations.
++              // 1. the value is constant,
++              // 2. the size is constant,
++              // 3. there is no more stores for the memory.
++              tree val = gimple_call_arg(stmt, 1);
++              tree size = gimple_call_arg(stmt, 2);
++              if (gimple_clobber_p(use_stmt)
++                      && TREE_CODE(val) == INTEGER_CST
++                      && TREE_CODE(size) == INTEGER_CST)
++              {
++                  FILE *fd = fopen("/tmp/sec-dse.log", "a");
++                  print_gimple_stmt(fd, stmt, TDF_DETAILS, 0);
++                  if(gimple_has_location(stmt))
++                  {
++                      location_t loc = gimple_location(stmt);
++                      fprintf(fd, "file:%s\nline number:%d\n",
++                              LOCATION_FILE(loc), LOCATION_LINE(loc));
++                  }
++                  fprintf(fd, "\n");
++                  fclose(fd);
++              }
++              delete_dead_call (gsi);
++          }
+ 	      return;
+ 	    }
+ 

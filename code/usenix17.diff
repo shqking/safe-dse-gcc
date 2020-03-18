@@ -1,0 +1,28 @@
+diff --git a/lib/Transforms/Scalar/DeadStoreElimination.cpp b/lib/Transforms/Scalar/DeadStoreElimination.cpp
+index 5313c65..2c35f72 100644
+--- a/lib/Transforms/Scalar/DeadStoreElimination.cpp
++++ b/lib/Transforms/Scalar/DeadStoreElimination.cpp
+@@ -91,8 +91,10 @@ static uint64_t isScrubbing(Instruction *I) {
+   if (isa<StoreInst>(I)) {
+     StoreInst *SI = dyn_cast<StoreInst>(I);
+     Value *V = SI->getValueOperand();
+-    if (ConstantInt* CI = dyn_cast<ConstantInt>(V))
++    if (ConstantInt* CI = dyn_cast<ConstantInt>(V)) {
++      printRemoval(I);
+       return (CI->getBitWidth()) >> 3;
++    }
+   }
+ 
+   if (IntrinsicInst *II = dyn_cast<IntrinsicInst>(I)) {
+@@ -100,8 +102,10 @@ static uint64_t isScrubbing(Instruction *I) {
+       Value *V = II->getArgOperand(1);
+       Value *Len = II->getArgOperand(2);
+       if (ConstantInt* CI1 = dyn_cast<ConstantInt>(V))
+-        if (ConstantInt* CI2 = dyn_cast<ConstantInt>(Len))
++        if (ConstantInt* CI2 = dyn_cast<ConstantInt>(Len)) {
++          printRemoval(I);
+           return CI2->getZExtValue(); // return number of bits
++	}
+     }
+   }
+ 

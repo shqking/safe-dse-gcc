@@ -1,0 +1,7 @@
+case    gcc         llvm        gcc-sec-dse     llvm-sec-dse    should-keep
+1       remove      remove      warning         warning         yes
+2       not remove  not remove                                  no
+3       remove      remove                                      no
+4       not remove  not remove                                  no
+5       remove      remove                                      no
+6       remove      remove                                      no

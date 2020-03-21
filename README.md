@@ -223,7 +223,9 @@ We present 6 test cases under `example` directory. As shown in the follwing tabl
 
 Note that the main reason we implemented this GCC version tool is that not all software/projects can be easily built using LLVM as the toolchain.
 
-We have applied our tool to several open-source projects, such as linux kernel and glibc. And we found several potential bugs, i.e. memory srcubbing operations for sensitive information are used in the projects. More information will be discussed once the potential bugs get confirmed by the developers.
+We have applied our tool to several open-source projects, such as linux kernel ([bug 206905](https://bugzilla.kernel.org/show_bug.cgi?id=206905)) and glibc ([bug 25740](https://sourceware.org/bugzilla/show_bug.cgi?id=25704)). And we found several potential bugs, i.e. memory srcubbing operations for sensitive information are used in the projects. 
+
+More information will be discussed once the potential bugs get confirmed by the developers.
 
 
 

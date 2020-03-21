@@ -2,11 +2,11 @@
 
 This tool aims to find memory scrubbing operations, which might be eliminated/removed by compilers, particularly by the DSE(dead store elimination) pass at O1 or higher optimization levels.
 
-Note that it is a GCC implementation version for the USENIX Security 2017 paper "**Dead Store Elimination (Still) Considered Harmful**", where a LLVM-based tool was designed and implemented.
+Note that it is a GCC implementation version for the USENIX Security 2017 paper "**[Dead Store Elimination (Still) Considered Harmful](https://www.usenix.org/conference/usenixsecurity17/technical-sessions/presentation/yang)**", where a LLVM-based tool was designed and implemented.
 
 ##### Security problem we care about.
 
-Developers might explictly **scrub** sensitive data from memory, via storing random values, after its last use so that a memory disclosure vulnerability could not reveal this data. (Please refer to `examples/1-memset-passwd.c` as an example. Also you may want to check out the detailed explaination presented in Section 1 of the USENIX Security 2017 paper).
+Developers might explictly **scrub** sensitive data from memory, via storing random values, after its last use so that a memory disclosure vulnerability could not reveal this data. (Please refer to `examples/1-memset-passwd.c` as an example. Also you may want to refer to the detailed explaination presented in Section 1 of the USENIX Security 2017 paper).
 
 However, DSE pass in compilers would remove these **memory scrubbing operations** since they have no effect on the program result, either because the stored value is overwritten or it is never read again.
 
@@ -108,7 +108,7 @@ From the ll file, we can see the `memset` at line 17 in source code is indeed re
 
 ##### Tool in USENIX Security 2017 paper
 
-The tool, named `Scrubbing Finder`, can be activated by providing compilcation options for LLVM, i.e. `-fsanitize=sec-dse -fsanitize=byte-counter`
+The tool, named `Scrubbing Finder`, can be run by providing compiler options for LLVM, i.e. `-fsanitize=sec-dse -fsanitize=byte-counter`.
 
 ```bash
 root@shqking:~/code/safe-dse-gcc# ./dse-llvm/bin/clang -O1 -fsanitize=sec-dse -fsanitize=byte-counter examples/1-memset-passwd.c -o a
@@ -136,7 +136,7 @@ From the log we can see that,
 
 Note that the implementation details of `Scrubbing Finder` can be found in `Scrubbing-Safe-DSE/lib/Transforms/Scalar/DeadStoreElimination.cpp` if you are interested in.
 
-**Note that** as discussed in Appendix A in the Security'17 paper, Scrubbing Finder differentiates removed scrubs from other dead stores, that is 
+**Note that** as discussed in Appendix A in the Security'17 paper, `Scrubbing Finder` differentiates removed scrubs from other dead stores, that is 
 
 1. a store that is overwritted by another store with no read in between, which means the first store is used as a cleaning initialization. Please refer to cases 2-4 under `example` directory as an example.
 2. the stored value and the number of bytes stores should be a constant, as discussed in Section 7.1. Please refer to case 5-6 under `example` directory as an example.

@@ -5,9 +5,9 @@
 
 void main()
 {
-    char pwd[LEN];
+    char str[LEN];
     // init
-	memset(pwd, 0, sizeof(pwd));
+    memset(str, 0, sizeof(str));
 
     // rewrite
     int inx;
@@ -15,8 +15,8 @@ void main()
     {
         int var;
         scanf("%d", &var);
-        pwd[inx] = var;
+        str[inx] = var;
     }
- 	printf("pwd is %s\n", pwd);
-	return;	
+    printf("str is %s\n", str);
+    return;
 }

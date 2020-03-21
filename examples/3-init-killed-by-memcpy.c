@@ -7,11 +7,11 @@ void main()
 {
     char pwd[LEN];
     // init
-	memset(pwd, 0, sizeof(pwd));
+    memset(pwd, 0, sizeof(pwd));
 
     // rewrite
     char str[] = "password";
     memcpy(pwd, str, LEN);
- 	printf("pwd is %s\n", pwd);
-	return;	
+    printf("pwd is %s\n", pwd);
+    return;
 }

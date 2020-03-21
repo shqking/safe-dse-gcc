@@ -1,4 +1,4 @@
-case    gcc         llvm        gcc-sec-dse     llvm-sec-dse    should-keep
+case    gcc         llvm        gcc-sec-dse     llvm-sec-dse    scrubbing op
 1       remove      remove      warning         warning         yes
 2       not remove  not remove                                  no
 3       remove      remove                                      no

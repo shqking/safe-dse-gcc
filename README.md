@@ -1,10 +1,10 @@
-#### 1. About
+### 1. About
 
 This tool aims to find memory scrubbing operations, which might be eliminated/removed by compilers, particularly by the DSE(dead store elimination) pass at O1 or higher optimization levels.
 
 Note that it is a GCC implementation version for the USENIX Security 2017 paper "**[Dead Store Elimination (Still) Considered Harmful](https://www.usenix.org/conference/usenixsecurity17/technical-sessions/presentation/yang)**", where a LLVM-based tool was designed and implemented.
 
-##### Security problem we care about.
+#### Security problem we care about.
 
 Developers might explictly **scrub** sensitive data from memory, via storing random values, after its last use so that a memory disclosure vulnerability could not reveal this data. (Please refer to `examples/1-memset-passwd.c` as an example. Also you may want to refer to the detailed explaination presented in Section 1 of the USENIX Security 2017 paper).
 
@@ -14,9 +14,9 @@ It's a case of the "correctness-security gap" problem between the C standard and
 
 
 
-#### 2. How to use the LLVM-based tool provided by the USENIX Security 2017 paper
+### 2. How to use the LLVM-based tool provided by the USENIX Security 2017 paper
 
-##### Intallation
+#### Intallation
 
 Download the code from the [repo](https://github.com/zhaomoy/Scrubbing-Safe-DSE) and install.
 
@@ -34,7 +34,7 @@ make -j 8
 
 The tool is `PATH_TO_SEC17/Scrubbing-Safe-DSE/build/bin/clang`.
 
-##### LLVM DSE pass.
+#### LLVM DSE pass.
 
 Take `examples/1-memset-passwd.c` as an example.
 
@@ -106,7 +106,7 @@ From the ll file, we can see the `memset` at line 17 in source code is indeed re
  31 ; Function Attrs: argmemonly nounwind
 ```
 
-##### Tool in USENIX Security 2017 paper
+#### Tool in USENIX Security 2017 paper
 
 The tool, named `Scrubbing Finder`, can be run by providing compiler options for LLVM, i.e. `-fsanitize=sec-dse -fsanitize=byte-counter`.
 
@@ -141,7 +141,7 @@ Note that the implementation details of `Scrubbing Finder` can be found in `Scru
 1. a store that is overwritted by another store with no read in between, which means the first store is used as a cleaning initialization. Please refer to cases 2-4 under `example` directory as an example.
 2. the stored value and the number of bytes stores should be a constant, as discussed in Section 7.1. Please refer to case 5-6 under `example` directory as an example.
 
-##### A patch we provide
+#### A patch we provide
 
 We give a patch (see `code/usenix17.diff`) for `Scrubbing Finder` tool. 
 
@@ -171,7 +171,7 @@ TODO: we will figure out whether the log is duplicate.
 
 
 
-#### 3. Our GCC version implementation
+### 3. Our GCC version implementation
 
 We hacked the DSE pass inside GCC compiler, i.e. `gcc/tree-ssa-dse.c` file.
 
@@ -200,7 +200,7 @@ line number:17
 
 
 
-#### 4. Test cases
+### 4. Test cases
 
 We present 6 test cases under `example` directory. As shown in the follwing table:
 
@@ -219,7 +219,7 @@ We present 6 test cases under `example` directory. As shown in the follwing tabl
 
 
 
-#### 5. Potential bugs we have found
+### 5. Potential bugs we have found
 
 Note that the main reason we implemented this GCC version tool is that not all software/projects can be easily built using LLVM as the toolchain.
 

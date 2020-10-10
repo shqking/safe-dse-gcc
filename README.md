@@ -1,26 +1,30 @@
 ### 1. About
 
-This tool aims to find memory scrubbing operations, which might be eliminated/removed by compilers, particularly by the DSE(dead store elimination) pass at O1 or higher optimization levels.
+This tool aims to find memory scrubbing operations, which might be eliminated/removed by compilers, particularly by the DSE (dead store elimination) pass at O1 or higher optimization levels.
 
-Note that it is a GCC implementation version for the USENIX Security 2017 paper "**[Dead Store Elimination (Still) Considered Harmful](https://www.usenix.org/conference/usenixsecurity17/technical-sessions/presentation/yang)**", where a LLVM-based tool was designed and implemented.
+Note that it is a GCC implementation version for the USENIX Security 2017 paper "**[Dead Store Elimination (Still) Considered Harmful](https://www.usenix.org/conference/usenixsecurity17/technical-sessions/presentation/yang)**", where a LLVM-based tool (named `Scrubbing Finder`) was designed and implemented.
 
 #### Security problem we care about.
 
-Developers might explictly **scrub** sensitive data from memory, via storing random values, after its last use so that a memory disclosure vulnerability could not reveal this data. (Please refer to `examples/1-memset-passwd.c` as an example. Also you may want to refer to the detailed explaination presented in Section 1 of the USENIX Security 2017 paper).
+Developers might explictly **scrub** sensitive data from memory, via storing random values, after its last use so that a memory disclosure vulnerability cannot reveal this data. 
 
-However, DSE pass in compilers would remove these **memory scrubbing operations** since they have no effect on the program result, either because the stored value is overwritten or it is never read again.
+> Please refer to `examples/1-memset-passwd.c` as an example. 
+>
+> Also you may want to refer to the detailed explaination presented in Section 1 of the USENIX Security 2017 paper.
+
+However, DSE pass in compilers would remove these **memory scrubbing operations** since these operations have no effect on the program's final results, either because the stored value is meaningless or it would never be read any longer.
 
 It's a case of the "correctness-security gap" problem between the C standard and compilers.
 
 
 
-### 2. How to use the LLVM-based tool provided by the USENIX Security 2017 paper
+### 2. How to use the prototype of the USENIX Security 2017 paper
 
 #### Intallation
 
 Download the code from the [repo](https://github.com/zhaomoy/Scrubbing-Safe-DSE) and install.
 
-Note that the OS i'm using is Ubuntu 14.04.
+Note that the OS I'm using is Ubuntu 14.04.
 
 ```
 cd PATH_TO_SEC17
@@ -34,7 +38,7 @@ make -j 8
 
 The tool is `PATH_TO_SEC17/Scrubbing-Safe-DSE/build/bin/clang`.
 
-#### LLVM DSE pass.
+#### How LLVM's DSE pass works?
 
 Take `examples/1-memset-passwd.c` as an example.
 
@@ -60,16 +64,16 @@ Take `examples/1-memset-passwd.c` as an example.
  19 }
 ```
 
-We can see that the `memset` at line 17 is a memory scubbing operation, but compilers may treat it as a deat store since the stored value is never used.
+We can see that the `memset` at line 17 is a memory scubbing operation, but compilers may treat it as a dead store since the stored value is never used.
 
-At O1 or higher optimization level, the DSE pass is activated and line 17 would be removed. We can check it by referring the IR produced by compilers. The following is the LLVM IR for `examples/1-memset-passwd.c`.
+At O1 or higher optimization level, the DSE pass is activated and line 17 would be removed. We can check it by referring the IR produced by LLVM. The following is the LLVM IR for `examples/1-memset-passwd.c`.
 
 ```bash
 PATH_TO_SEC17/Scrubbing-Safe-DSE/build/bin/clang -O1 -S -emit-llvm examples/1-memset-passwd.c
 cat 1-memset-passwd.ll
 ```
 
-From the ll file, we can see the `memset` at line 17 in source code is indeed removed/optimized.
+From the `ll` file, we can see the `memset` at line 17 in source code is indeed removed/optimized.
 
 ```
   1 ; ModuleID = 'examples/1-memset-passwd.c'
@@ -106,9 +110,9 @@ From the ll file, we can see the `memset` at line 17 in source code is indeed re
  31 ; Function Attrs: argmemonly nounwind
 ```
 
-#### Tool in USENIX Security 2017 paper
+#### Scrubbing Finder
 
-The tool, named `Scrubbing Finder`, can be run by providing compiler options for LLVM, i.e. `-fsanitize=sec-dse -fsanitize=byte-counter`.
+The tool, named `Scrubbing Finder`, can be run by providing specific compiler options for LLVM, i.e. `-fsanitize=sec-dse -fsanitize=byte-counter`.
 
 ```bash
 root@shqking:~/code/safe-dse-gcc# ./dse-llvm/bin/clang -O1 -fsanitize=sec-dse -fsanitize=byte-counter examples/1-memset-passwd.c -o a
@@ -131,8 +135,8 @@ pwd is password
 
 From the log we can see that,
 
-- No message about whether a memory scrubbing operation would be removed by compiler, is provided at the <u>compilation</u> phase by `Scrubbing Finder`
-- At <u>runtime</u> phase, `Scrubbing Finder` dumps how many bytes it prevents the compiler from removing.
+- None message whether one certain memory scrubbing operation would be removed by compilers, is provided at the <u>compilation</u> phase by `Scrubbing Finder`.
+- At <u>runtime</u> phase, `Scrubbing Finder` can dump how many bytes it prevents the compiler from removing.
 
 Note that the implementation details of `Scrubbing Finder` can be found in `Scrubbing-Safe-DSE/lib/Transforms/Scalar/DeadStoreElimination.cpp` if you are interested in.
 
@@ -167,7 +171,7 @@ Additional Info:
 1 warning generated.
 ```
 
-TODO: we will figure out whether the log is duplicate.
+TODO: we will figure out why parts of the log are duplicate.
 
 
 
@@ -202,26 +206,26 @@ line number:17
 
 ### 4. Test cases
 
-We present 6 test cases under `example` directory. As shown in the follwing table:
+We present 6 unit testcases under `example` directory. As shown in the follwing table:
 
 - Column 2: only case 1 is our target. Case 2-4 are memroy initialization, and cases 5-6 use variable value or bytes cout.
 - Column 3-4: theoretically both GCC and LLVM would remove all the memory scrubbing operations in these 6 cases at O1 optimization level. However, both GCC and LLVM miss case 2 and case 4.
 - Column 5-6: as for the removed scrubs (case 1, 3, 5, 6), both `Scrubbing Finder` and our tool can distinguish our target and other dead store, i.e. dumpping logs for our target. 
 
-| Case | Scrubbing Op    | GCC O1 | LLVM O1 | Scrubbing Finder | Our Tool |
-| ---- | --------------- | ------ | ------- | ---------------- | -------- |
-| 1    | **our target**  | remove | remove  | Log              | Log      |
-| 2    | init via for    | keep   | keep    | -                | -        |
-| 3    | init via memcpy | remove | remove  | -                | -        |
-| 4    | init via memset | keep   | Keep    | -                | -        |
-| 5    | Var. number     | remove | Remove  | -                | -        |
-| 6    | Var. value      | remove | Remove  | -                | -        |
+| Case | Scrubbing Op    | GCC O1  | LLVM O1 | Scrubbing Finder | Our Tool |
+| ---- | --------------- | ------- | ------- | ---------------- | -------- |
+| 1    | **our target**  | Removed | Removed | Log              | Log      |
+| 2    | init via for    | Kept    | Kept    | -                | -        |
+| 3    | init via memcpy | Removed | Removed | -                | -        |
+| 4    | init via memset | Kept    | Kept    | -                | -        |
+| 5    | Var. number     | Remove  | Removed | -                | -        |
+| 6    | Var. value      | Removed | Removed | -                | -        |
 
 
 
 ### 5. Potential bugs we have found
 
-Note that the main reason we implemented this GCC version tool is that not all software/projects can be easily built using LLVM as the toolchain.
+Note that the main reason we implemented this GCC version tool is that **not all software/projects can be easily built using LLVM as the toolchain**.
 
 We have applied our tool to several open-source projects, such as linux kernel ([bug 206905](https://bugzilla.kernel.org/show_bug.cgi?id=206905)) and glibc ([bug 25740](https://sourceware.org/bugzilla/show_bug.cgi?id=25704)). And we found several potential bugs, i.e. memory srcubbing operations for sensitive information are used in the projects. 
 
